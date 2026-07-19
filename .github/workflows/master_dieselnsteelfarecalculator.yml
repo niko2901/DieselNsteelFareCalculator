@@ -23,18 +23,16 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      # --- FIXED CASE SENSITIVITY: Changed NSteel to Nsteel to match your project tree ---
-      - name: Build and Publish Blazor WASM
-        run: dotnet publish ./DieselNsteel.Client/DieselNsteel.Client.csproj -c Release -o ./publishoutput
-
-      - name: Add SPA Routing Fallback Rule
-        run: cp ./publishoutput/wwwroot/index.html ./publishoutput/wwwroot/404.html
+      # --- FIXED: Target the main Server project instead of the client ---
+      # This compiles the full backend server and embeds the client WebAssembly assets automatically.
+      - name: Build and Publish Hosted Blazor App
+        run: dotnet publish ./DieselNsteel/DieselNsteel.csproj -c Release -o ./publishoutput
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ./publishoutput/wwwroot
+          path: ./publishoutput
 
   deploy:
     runs-on: ubuntu-latest
