@@ -23,22 +23,17 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      - name: Build and Publish Blazor WASM
+        run: dotnet publish -c Release -o ./publishoutput
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ./myapp
-
-      # --- CRUCIAL BLAZOR FIX: Inject routing rule so page refreshes don't 404 ---
       - name: Add SPA Routing Fallback Rule
-        run: cp ./myapp/wwwroot/index.html ./myapp/wwwroot/404.html
+        run: cp ./publishoutput/wwwroot/index.html ./publishoutput/wwwroot/404.html
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          # --- Point directly to the static compiled website assets folder ---
-          path: ./myapp/wwwroot
+          path: ./publishoutput/wwwroot
 
   deploy:
     runs-on: ubuntu-latest
