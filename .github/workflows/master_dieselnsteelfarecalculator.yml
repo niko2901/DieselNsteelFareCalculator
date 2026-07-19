@@ -23,11 +23,10 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      # --- TARGET THE CLIENT SUBFOLDER PROJECT ---
+      # --- FIXED CASE SENSITIVITY: Changed NSteel to Nsteel to match your project tree ---
       - name: Build and Publish Blazor WASM
-        run: dotnet publish ./DieselNSteel.Client/DieselNSteel.Client.csproj -c Release -o ./publishoutput
+        run: dotnet publish ./DieselNsteel.Client/DieselNsteel.Client.csproj -c Release -o ./publishoutput
 
-      # --- This path will now match perfectly ---
       - name: Add SPA Routing Fallback Rule
         run: cp ./publishoutput/wwwroot/index.html ./publishoutput/wwwroot/404.html
 
