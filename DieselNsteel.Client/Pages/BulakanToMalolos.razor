@@ -1,0 +1,164 @@
+﻿@page "/BulakanMalolos"
+@rendermode InteractiveWebAssembly
+
+@using DieselNsteel.Client.Services
+@using DieselNsteel.Client.Models
+@inject FareServices Fare
+
+
+<PageTitle>Bulakan-Balagtas Fare Calculator</PageTitle>
+
+<div class="d-flex flex-row justify-content-between col-12 col-lg-6">
+    <a class="btn btn-outline-secondary col-2 m-3" href="/">Back</a>
+
+    <InputCheckbox class="btn-check" id="btn-check" autocomplete="off" @bind-Value="isSwap" @bind-Value:after="OnSwapToggled" />
+    <label class="btn btn-primary col-5 m-3" for="btn-check">@(isSwap == true ? "Malolos - Bulakan" : "Bulakan - Malolos")</label>
+</div>
+
+
+<div class="d-flex flex-column justify-content-center align-items-center p-2 col-lg-6">
+    <div class="w-100 input-group mb-3">
+        <span class="input-group-text">Change</span>
+        <input type="text" class="form-control fs-5" name="change" id="change" autocomplete="off"
+               value="@(result.Change >= 0 && !string.IsNullOrEmpty(selectedOrigin) && !string.IsNullOrEmpty(selectedDestination) ? $"₱{result.Change}" : "₱0")"
+               readonly>
+    </div>
+
+    <div class="w-100 row row-cols-2 mb-3">
+        <div class="col">
+            <h5>Origin</h5>
+
+            <div class="d-flex flex-column gap-2">
+                <InputRadioGroup TValue="string" Value="selectedOrigin" ValueChanged="OnOriginChanged" ValueExpression="() => selectedOrigin">
+                    @foreach (var item in Fare.GetStationsForRoute(currentRoute))
+                    {
+                        var id = $"origin-{item.Replace(" ", "").Replace("/", "")}";
+                        <div @key="id">
+                            <InputRadio TValue="string" class="btn-check" Value="@item" id="@id" autocomplete="off" />
+                            <label class="btn btn-primary col-12 py-3 text-center" for="@id">@item</label>
+                        </div>
+                    }
+                </InputRadioGroup>
+            </div>
+        </div>
+
+        <div class="col">
+            <h5>Destination</h5>
+
+            <div class="d-flex flex-column gap-2">
+                <InputRadioGroup TValue="string" Value="selectedDestination" ValueChanged="OnDestinationChanged" ValueExpression="() => selectedDestination">
+                    @foreach (var item in Fare.GetStationsForRoute(currentRoute))
+                    {
+                        var id = $"dest-{item.Replace(" ", "").Replace("/", "")}";
+                        <div @key="id">
+                            <InputRadio TValue="string" class="btn-check" Value="@item" id="@id" autocomplete="off" />
+                            <label class="btn btn-primary col-12 py-3 text-center" for="@id">@item</label>
+                        </div>
+                    }
+                </InputRadioGroup>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-100 mb-3">
+        <h5>Passenger</h5>
+
+        <div class=" w-100">
+            <InputRadioGroup TValue="int" Value="passengerCount" ValueChanged="OnPassengerChanged" ValueExpression="() => passengerCount">
+                <div class="d-flex flex-row gap-2 w-100">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        var id = $"person{@i}";
+                        <div class="flex-fill">
+                            <InputRadio TValue="int" class="btn-check" Value="@i" id="@id" autocomplete="off" checked />
+                            <label class="btn btn-primary py-3 w-100" for="@id">@i</label>
+                        </div>
+                    }
+                </div>
+            </InputRadioGroup>
+        </div>
+    </div>
+
+    <div class="w-100 mb-3">
+        <h5>Discount</h5>
+
+        <InputRadioGroup TValue="bool" Value="isDiscounted" ValueChanged="OnDiscountChanged" ValueExpression="() => isDiscounted">
+            <div class="d-flex flex-row gap-2 w-100">
+                <div class="flex-fill">
+                    <InputRadio TValue="bool" class="btn-check" Value="false" id="regular" autocomplete="off" checked />
+                    <label class="btn btn-primary py-3 w-100" for="regular">Regular</label>
+                </div>
+
+                <div class="flex-fill">
+                    <InputRadio TValue="bool" class="btn-check" Value="true" id="student" autocomplete="off" />
+                    <label class="btn btn-primary py-3 w-100" for="student">Student/Senior</label>
+                </div>
+            </div>
+        </InputRadioGroup>
+    </div>
+
+    <div class="w-100">
+        <h5>Bill</h5>
+
+        <InputRadioGroup TValue="decimal" Value="cashReceived" ValueChanged="OnCashChanged" ValueExpression="() => cashReceived">
+            <div class="d-flex flex-row gap-2 w-100">
+                <div class="flex-fill">
+                    <InputRadio TValue="decimal" class="btn-check" Value="20m" id="bill20" autocomplete="off" checked />
+                    <label class="btn btn-primary py-3 w-100" for="bill20">20</label>
+                </div>
+
+                <div class="flex-fill">
+                    <InputRadio TValue="decimal" class="btn-check" Value="50m" id="bill50" autocomplete="off" />
+                    <label class="btn btn-primary py-3 w-100" for="bill50">50</label>
+                </div>
+
+                <div class="flex-fill">
+                    <InputRadio TValue="decimal" class="btn-check" Value="100m" id="bill100" autocomplete="off" />
+                    <label class="btn btn-primary py-3 w-100" for="bill100">100</label>
+                </div>
+            </div>
+        </InputRadioGroup>
+    </div>
+</div>
+
+@code {
+    private bool isSwap = false;
+    private string currentRoute => isSwap == true ? "MalolosBulakan" : "BulakanMalolos";
+
+    private string selectedOrigin = "";
+    private string selectedDestination = "";
+    private int passengerCount = 1;
+    private bool isDiscounted = false;
+    private decimal cashReceived = 20;
+
+    private FareResult result = new(0, 0, 0, "");
+
+    private void OnOriginChanged(string val) { selectedOrigin = val; Recalculate(); }
+    private void OnDestinationChanged(string val) { selectedDestination = val; Recalculate(); }
+    private void OnPassengerChanged(int val) { passengerCount = val; Recalculate(); }
+    private void OnDiscountChanged(bool val) { isDiscounted = val; Recalculate(); }
+    private void OnCashChanged(decimal val) { cashReceived = val; Recalculate(); }
+
+    private void OnSwapToggled()
+    {
+        // Instantly wipe old station selections when the toggle changes state
+        selectedOrigin = "";
+        selectedDestination = "";
+        result = new(0, 0, 0, "");
+
+        // Force a fresh calculation pass for the new route
+        Recalculate();
+    }
+
+    private void Recalculate()
+    {
+        result = Fare.ComputeAndChange(
+            currentRoute,
+            selectedOrigin,
+            selectedDestination,
+            passengerCount,
+            isDiscounted,
+            cashReceived
+        );
+    }
+}
