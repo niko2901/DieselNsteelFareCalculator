@@ -20,6 +20,10 @@ A lightweight fare calculator for the Roblox game **Diesel N Steel**. This app h
 
 ## Usage
 
+## Live Website
+
+- [Open Diesel n' Steel Fare Calculator](https://dieselnsteelfarecalculator-ach2c6exa8dpbybv.japaneast-01.azurewebsites.net)
+
 ### Prerequisites
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
